@@ -1,0 +1,19 @@
+:root { font-family: Inter, system-ui, sans-serif; color: #192538; background: #f7f8fa; font-synthesis: none; }
+* { box-sizing: border-box; }
+body { margin: 0; }
+a { color: #155e75; text-decoration: none; }
+.container { max-width: 1060px; margin: auto; padding: 0 24px; }
+.site-header { background: white; border-bottom: 1px solid #e6e9ef; }
+.nav { display: flex; align-items: center; justify-content: space-between; gap: 24px; min-height: 76px; }
+.logo { font-size: 23px; font-weight: 800; color: #17273b; white-space: nowrap; }
+.nav-links { display: flex; gap: 20px; flex-wrap: wrap; }
+.nav-links a { font-size: 14px; color: #425369; }
+.nav-links a.active { color: #00758d; font-weight: 700; }
+.main-content { min-height: calc(100vh - 76px); padding-top: 56px; padding-bottom: 56px; }
+.hero { max-width: 690px; padding: 38px 0; }
+.hero h1 { font-size: clamp(36px, 6vw, 60px); line-height: 1.12; letter-spacing: -1.8px; margin: 14px 0 20px; }
+.hero p, section p { color: #637185; line-height: 1.7; }
+.eyebrow { text-transform: uppercase; font-size: 13px; letter-spacing: 2px; color: #0d8294; font-weight: 700; }
+.button { display: inline-block; margin-top: 18px; padding: 13px 21px; color: white; background: #116a80; border-radius: 8px; font-weight: 600; }
+.empty { margin-top: 28px; padding: 30px; border: 1px dashed #bec9d2; border-radius: 12px; background: white; }
+@media (max-width: 720px) { .nav { align-items: start; flex-direction: column; padding-top: 20px; padding-bottom: 20px; } .nav-links { gap: 12px; } }
