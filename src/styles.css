@@ -17,3 +17,15 @@ a { color: #155e75; text-decoration: none; }
 .button { display: inline-block; margin-top: 18px; padding: 13px 21px; color: white; background: #116a80; border-radius: 8px; font-weight: 600; }
 .empty { margin-top: 28px; padding: 30px; border: 1px dashed #bec9d2; border-radius: 12px; background: white; }
 @media (max-width: 720px) { .nav { align-items: start; flex-direction: column; padding-top: 20px; padding-bottom: 20px; } .nav-links { gap: 12px; } }
+
+.entry-page { max-width: 650px; }
+.entry-form { display: flex; flex-direction: column; gap: 10px; margin-top: 24px; }
+.entry-form label { margin-top: 10px; font-weight: 600; }
+.entry-form input, .entry-form select, .entry-form textarea { width: 100%; padding: 12px 14px; border: 1px solid #bdcad3; border-radius: 8px; font: inherit; color: inherit; background: white; }
+.entry-form input:focus, .entry-form select:focus, .entry-form textarea:focus { outline: 2px solid #0d8294; outline-offset: 2px; }
+.entry-form input[aria-invalid="true"] { border-color: #a6192e; }
+.entry-form .button { align-self: flex-start; cursor: pointer; border: 0; font: inherit; }
+.field-error { color: #a6192e; font-size: 14px; }
+.entry-preview { margin-top: 28px; padding: 24px; border: 1px solid #bec9d2; background: white; border-radius: 12px; }
+.entry-preview h2 { margin-top: 0; }
+.entry-preview p { overflow-wrap: anywhere; }
