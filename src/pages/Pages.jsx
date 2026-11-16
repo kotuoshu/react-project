@@ -1,5 +1,7 @@
-import { useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { useEffect, useState } from 'react';
+import { Link, useNavigate, useParams } from 'react-router-dom';
+import { supabase } from '../lib/supabase.js';
+import { useAuth } from '../context/AuthContext.jsx';
 
 export function Home() {
   return <section className="hero"><span className="eyebrow">Твоят дневник за сериали</span><h1>Запази всяка история, която си гледал.</h1><p>Следи гледаните сериали, оценки и впечатления — на едно място.</p><Link className="button" to="/catalog">Разгледай каталога</Link></section>;
@@ -16,7 +18,43 @@ export function UserProfile() {
   return <section><h1>Публичен профил</h1><p>Няма публични записи за потребител {userId}.</p></section>;
 }
 export function MyDiary() {
-  return <section><h1>Моят дневник</h1><div className="empty">Все още няма добавени сериали.</div></section>;
+  const { user } = useAuth();
+  const [entries, setEntries] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+
+  useEffect(() => {
+    let active = true;
+    async function loadEntries() {
+      if (!supabase || !user) {
+        if (active) setLoading(false);
+        return;
+      }
+      const { data, error: requestError } = await supabase
+        .from('entries')
+        .select('id, title, genre, status, rating, notes, created_at')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false });
+      if (!active) return;
+      setEntries(data ?? []);
+      setError(requestError?.message ?? '');
+      setLoading(false);
+    }
+    loadEntries();
+    return () => { active = false; };
+  }, [user]);
+
+  return <section><h1>Моят дневник</h1>
+    {loading ? <p>Зареждане...</p> : error ? <p role="alert" className="field-error">{error}</p> : entries.length === 0 ?
+      <div className="empty">Все още няма добавени сериали. <Link to="/entries/create">Добави първия</Link></div> :
+      <div className="entries-list">{entries.map((entry) => <article className="entry-preview" key={entry.id}>
+        <h2>{entry.title}</h2>
+        <p><strong>Статус:</strong> {statuses[entry.status]}</p>
+        {entry.genre && <p><strong>Жанр:</strong> {entry.genre}</p>}
+        {entry.rating != null && <p><strong>Оценка:</strong> {entry.rating}/10</p>}
+        {entry.notes && <p><strong>Впечатления:</strong> {entry.notes}</p>}
+      </article>)}</div>}
+  </section>;
 }
 const emptyEntry = { title: '', genre: '', status: 'planned', rating: '', notes: '' };
 
@@ -29,16 +67,19 @@ const statuses = {
 export function CreateEntry() {
   const [entry, setEntry] = useState(emptyEntry);
   const [errors, setErrors] = useState({});
-  const [preview, setPreview] = useState(null);
+  const [saving, setSaving] = useState(false);
+  const [submitError, setSubmitError] = useState('');
+  const navigate = useNavigate();
+  const { user } = useAuth();
 
   function handleChange(event) {
     const { name, value } = event.target;
     setEntry((current) => ({ ...current, [name]: value }));
     setErrors({});
-    setPreview(null);
+    setSubmitError('');
   }
 
-  function handleSubmit(event) {
+  async function handleSubmit(event) {
     event.preventDefault();
     const nextErrors = {};
 
@@ -53,9 +94,27 @@ export function CreateEntry() {
     }
 
     setErrors(nextErrors);
-    if (Object.keys(nextErrors).length === 0) {
-      setPreview({ ...entry, title: entry.title.trim(), notes: entry.notes.trim() });
+    if (Object.keys(nextErrors).length !== 0) return;
+    if (!supabase || !user) {
+      setSubmitError('Трябва да влезеш в профила си, за да добавиш сериал.');
+      return;
     }
+    setSaving(true);
+    setSubmitError('');
+    const { error: requestError } = await supabase.from('entries').insert({
+      user_id: user.id,
+      title: entry.title.trim(),
+      genre: entry.genre.trim(),
+      status: entry.status,
+      rating: entry.rating === '' ? null : Number(entry.rating),
+      notes: entry.notes.trim(),
+    });
+    setSaving(false);
+    if (requestError) {
+      setSubmitError(requestError.message);
+      return;
+    }
+    navigate('/my-diary');
   }
 
   return (
@@ -119,31 +178,17 @@ export function CreateEntry() {
         />
         {errors.notes && <span className="field-error" id="notes-error">{errors.notes}</span>}
 
-        <button className="button" type="submit">Преглед на записа</button>
+        {submitError && <p role="alert" className="field-error">{submitError}</p>}
+        <button className="button" type="submit" disabled={saving}>{saving ? 'Запазване...' : 'Запази сериала'}</button>
       </form>
 
-      {preview && (
-        <div className="entry-preview" role="status">
-          <h2>{preview.title}</h2>
-          <p><strong>Статус:</strong> {statuses[preview.status]}</p>
-          {preview.genre && <p><strong>Жанр:</strong> {preview.genre}</p>}
-          {preview.rating && <p><strong>Оценка:</strong> {preview.rating}/10</p>}
-          {preview.notes && <p><strong>Впечатления:</strong> {preview.notes}</p>}
-          <p>Това е преглед на записа. Данните все още не се запазват.</p>
-        </div>
-      )}
+
     </section>
   );
 }
 export function EditEntry() {
   const { id } = useParams();
   return <section><h1>Редактиране на запис</h1><p>Редактирането на запис № {id} още не е достъпно.</p></section>;
-}
-export function Login() {
-  return <section><h1>Вход</h1><p>Входът още не е достъпен.</p></section>;
-}
-export function Register() {
-  return <section><h1>Регистрация</h1><p>Регистрацията още не е достъпна.</p></section>;
 }
 export function NotFound() {
   return <section><h1>404 — страницата не е намерена</h1><Link to="/">Към началото</Link></section>;
