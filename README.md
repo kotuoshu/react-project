@@ -2,6 +2,10 @@
 
 MyShowsList is a TV show diary built with React, Vite, React Router and Supabase.
 
+## Live Demo
+
+https://react-project-omega-gules.vercel.app/
+
 ## Installation
 
 Requires Node.js 20.19+ or 22.12+.
