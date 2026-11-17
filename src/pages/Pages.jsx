@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { supabase } from '../lib/supabase.js';
 import { useAuth } from '../context/AuthContext.jsx';
+import EntryLikes from '../components/EntryLikes.jsx';
 
 export function Home() {
   return <section className="hero"><span className="eyebrow">Твоят дневник за сериали</span><h1>Запази всяка история, която си гледал.</h1><p>Следи гледаните сериали, оценки и впечатления — на едно място.</p><Link className="button" to="/catalog">Разгледай каталога</Link></section>;
@@ -48,7 +49,16 @@ function EntryList({ result, empty }) {
 
 export function Catalog() {
   const result = useEntries();
-  return <section><h1>Каталог</h1><EntryList result={result} empty="Все още няма публикувани сериали." /></section>;
+  const [search, setSearch] = useState('');
+  const [status, setStatus] = useState('');
+  const entries = result.entries.filter(entry => entry.title.toLowerCase().includes(search.trim().toLowerCase()) && (!status || entry.status === status));
+  return <section><h1>Каталог</h1>
+    <div className="catalog-filters">
+      <label>Търси по заглавие<input type="search" value={search} onChange={event => setSearch(event.target.value)} /></label>
+      <label>Статус<select value={status} onChange={event => setStatus(event.target.value)}><option value="">Всички</option>{Object.entries(statuses).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></label>
+    </div>
+    <EntryList result={{ ...result, entries }} empty={search || status ? 'Няма съвпадащи сериали.' : 'Все още няма публикувани сериали.'} />
+  </section>;
 }
 export function EntryDetails() {
   const { id } = useParams();
@@ -71,6 +81,7 @@ export function EntryDetails() {
   if (result.error) return <p role="alert" className="field-error">{result.error}</p>;
   if (!entry) return <section><h1>Записът не е намерен</h1><Link to="/catalog">Към каталога</Link></section>;
   return <section><h1>Подробности за сериал</h1><EntryCard entry={entry}>
+    <EntryLikes key={entry.id} entryId={entry.id} />
     <Link to={`/users/${entry.user_id}`}>Други записи от автора</Link>
     {user?.id === entry.user_id && <div className="entry-actions"><Link className="button" to={`/entries/${id}/edit`}>Редактирай</Link><button className="button danger" disabled={deleting} onClick={remove}>{deleting ? 'Изтриване...' : 'Изтрий'}</button></div>}
     {error && <p role="alert" className="field-error">{error}</p>}
@@ -151,8 +162,8 @@ function EntryForm({ initialEntry, id }) {
     event.preventDefault();
     const nextErrors = {};
 
-    if (entry.title.trim().length < 2) {
-      nextErrors.title = 'Въведи заглавие с поне 2 символа.';
+    if (entry.title.trim().length < 2 || entry.title.trim().length > 100) {
+      nextErrors.title = 'Заглавието трябва да съдържа от 2 до 100 символа.';
     }
     if (entry.rating !== '' && (!Number.isInteger(Number(entry.rating)) || Number(entry.rating) < 1 || Number(entry.rating) > 10)) {
       nextErrors.rating = 'Оценката трябва да е между 1 и 10.';
