@@ -33,3 +33,7 @@ a { color: #155e75; text-decoration: none; }
 .nav-button { padding: 0; border: 0; background: none; color: #425369; font: inherit; font-size: 14px; cursor: pointer; }
 .nav-button:hover { color: #00758d; }
 .entry-form button:disabled { opacity: .55; cursor: not-allowed; }
+.entry-actions { display: flex; flex-wrap: wrap; gap: 12px; }
+.entry-actions button { border: 0; cursor: pointer; font: inherit; font-weight: 600; }
+.entry-actions .danger { background: #a6192e; }
+.entry-actions button:disabled { opacity: .55; cursor: not-allowed; }
